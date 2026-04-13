@@ -1,4 +1,4 @@
-name: Synchronisation FTP des mods
+name: Synchronisation SFTP des mods
 
 on:
   schedule:
@@ -12,22 +12,20 @@ jobs:
       - name: Checkout du dépôt
         uses: actions/checkout@v4
 
-      - name: Synchroniser les mods via FTP
-        uses: SamKirkland/FTP-Deploy-Action@master  # Version la plus récente et stable
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ${{ secrets.FTP_LOCAL_DIR }}
-          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
-          exclude: |
-            **/*.html
-            **/index.*
+      - name: Installer sshpass
+        run: sudo apt-get update && sudo apt-get install -o Dpkg::Options::="--force-confold" -y sshpass
+
+      - name: Synchroniser les mods via SFTP
+        run: |
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oBatchMode=no -oStrictHostKeyChecking=no -b - ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} <<EOF
+          put -r mods/ ${{ secrets.FTP_REMOTE_DIR }}
+          bye
+          EOF
 
       - name: Commit et push les changements
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add mods/
-          git diff --quiet && git diff --staged --quiet || git commit -m "🔄 Synchronisation FTP des mods"
+          git diff --quiet && git diff --staged --quiet || git commit -m "🔄 Synchronisation SFTP des mods"
           git push

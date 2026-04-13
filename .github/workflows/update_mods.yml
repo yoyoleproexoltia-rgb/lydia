@@ -17,8 +17,8 @@ jobs:
 
       - name: Synchroniser les mods via SFTP
         run: |
-          echo "🔹 Connexion SFTP vers 9003.mystradator.com:2022..."
-          sshpass -p "4264Mon342Aug-MSR" sftp -v -oPort=2022 -oStrictHostKeyChecking=no -b - teels_e20aa8f8a@9003.mystradator.com <<EOF
+          echo "🔹 Connexion SFTP vers 91.197.6.226:27696..."
+          sshpass -p "4264Mon342Aug-MSR" sftp -v -oPort=27696 -oStrictHostKeyChecking=no -b - teels_e20aa8f8a@91.197.6.226 <<EOF
           cd /
           put -r mods/*
           bye

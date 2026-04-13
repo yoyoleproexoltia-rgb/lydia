@@ -1,1 +1,42 @@
+name: Mise à jour automatique des mods
 
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Toutes les 30 minutes
+  workflow_dispatch:        # Permet de lancer manuellement
+
+jobs:
+  update_mods:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v3
+
+      - name: Télécharger les mods depuis le serveur
+        run: |
+          # Liste des mods à télécharger (à adapter)
+          MODS=(
+            "fabric-api-0.76.0+1.19.2.jar"
+            "sodium-fabric-mc1.19.2-0.4.4+build.18.jar"
+            "iris-mc1.19.2-1.5.2.jar"
+          )
+
+          # Dossier de destination
+          MODS_DIR="mods"
+
+          # Créer le dossier s'il n'existe pas
+          mkdir -p "$MODS_DIR"
+
+          # Télécharger chaque mod
+          for mod in "${MODS[@]}"; do
+            echo "Téléchargement de $mod..."
+            curl -o "$MODS_DIR/$mod" "http://TON_IP_SERVEUR:8080/mods/$mod" || echo "❌ Échec pour $mod"
+          done
+
+      - name: Commit et push les changements
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add mods/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Mise à jour automatique des mods"
+          git push

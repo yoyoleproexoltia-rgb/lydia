@@ -30,7 +30,7 @@ jobs:
           # Télécharger chaque mod
           for mod in "${MODS[@]}"; do
             echo "Téléchargement de $mod..."
-            curl -o "$MODS_DIR/$mod" "http://TON_IP_SERVEUR:8080/mods/$mod" || echo "❌ Échec pour $mod"
+            curl -o "$MODS_DIR/$mod" "http://91.197.6.226:27696:8080/mods/$mod" || echo "❌ Échec pour $mod"
           done
 
       - name: Commit et push les changements

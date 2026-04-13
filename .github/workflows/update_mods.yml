@@ -2,11 +2,11 @@ name: Synchronisation SFTP des mods
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Toutes les 10 minutes (ajustable)
-  workflow_dispatch:        # Lancement manuel possible
+    - cron: '*/10 * * * *'  # Toutes les 10 minutes
+  workflow_dispatch:        # Permet de lancer manuellement
 
 jobs:
-  sync_mods:
+  sync:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout du dépôt
@@ -15,18 +15,14 @@ jobs:
       - name: Installer sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Synchroniser les mods via SFTP
+      - name: Tester la connexion SFTP
         run: |
-          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oPort=22 -oBatchMode=no -oStrictHostKeyChecking=no -b - ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} <<EOF
+          echo "🔹 Tentative de connexion SFTP..."
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -v -oPort=22 -oStrictHostKeyChecking=no -b - ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} <<EOF
           cd ${{ secrets.FTP_REMOTE_DIR }}
           put -r mods/*
           bye
           EOF
 
-      - name: Commit et push les changements
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add mods/
-          git diff --quiet && git diff --staged --quiet || git commit -m "🔄 Synchronisation SFTP des mods"
-          git push
+      - name: Vérifier les logs
+        run: echo "✅ Test SFTP terminé !"

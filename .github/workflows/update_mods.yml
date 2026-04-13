@@ -1,42 +1,33 @@
-name: Mise à jour automatique des mods
+name: Synchronisation FTP des mods
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Toutes les 30 minutes
-  workflow_dispatch:        # Permet de lancer manuellement
+    - cron: '*/10 * * * *'  # Toutes les 10 minutes (ajustable)
+  workflow_dispatch:        # Lancement manuel possible
 
 jobs:
-  update_mods:
+  sync_mods:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout du dépôt
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Télécharger les mods depuis le serveur
-        run: |
-          # Liste des mods à télécharger (à adapter)
-          MODS=(
-            "fabric-api-0.76.0+1.19.2.jar"
-            "sodium-fabric-mc1.19.2-0.4.4+build.18.jar"
-            "iris-mc1.19.2-1.5.2.jar"
-          )
-
-          # Dossier de destination
-          MODS_DIR="mods"
-
-          # Créer le dossier s'il n'existe pas
-          mkdir -p "$MODS_DIR"
-
-          # Télécharger chaque mod
-          for mod in "${MODS[@]}"; do
-            echo "Téléchargement de $mod..."
-            curl -o "$MODS_DIR/$mod" "http://91.197.6.226:27696:8080/mods/$mod" || echo "❌ Échec pour $mod"
-          done
+      - name: Synchroniser les mods via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ${{ secrets.FTP_LOCAL_DIR }}
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          exclude: |
+            **/*.html
+            **/index.*
 
       - name: Commit et push les changements
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add mods/
-          git diff --quiet && git diff --staged --quiet || git commit -m "Mise à jour automatique des mods"
+          git diff --quiet && git diff --staged --quiet || git commit -m "🔄 Synchronisation FTP des mods"
           git push

@@ -13,12 +13,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Installer sshpass
-        run: sudo apt-get update && sudo apt-get install -o Dpkg::Options::="--force-confold" -y sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Synchroniser les mods via SFTP
         run: |
-          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oBatchMode=no -oStrictHostKeyChecking=no -b - ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} <<EOF
-          put -r mods/ ${{ secrets.FTP_REMOTE_DIR }}
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oPort=2022 -oBatchMode=no -oStrictHostKeyChecking=no -b - ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} <<EOF
+          cd ${{ secrets.FTP_REMOTE_DIR }}
+          put -r mods/*
           bye
           EOF
 
